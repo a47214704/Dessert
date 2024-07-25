@@ -10,12 +10,12 @@ export async function getUserList() {
     return res.data;
 }
 
-export async function editUserList(id, user) {
-    const res = await http.post(`/api/Users/${id}`, user);
+export async function editUser(id, user) {
+    const res = await http.put(`/api/Users/${id}`, user);
     return res.data;
 }
 
-export async function addUserList(user) {
+export async function addUser(user) {
     const res = await http.post(`/api/Users`, user);
     return res.data;
 }

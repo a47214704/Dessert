@@ -24,3 +24,8 @@ export async function deleteProduct(id) {
     const res = await http.delete(`/api/Products/${id}`);
     return res.data;
 }
+
+export async function uploadFile(id, data) {
+    const res = await http.uploadFile(`/api/Products/${id}/UploadFile`, data);
+    return res.data;
+}

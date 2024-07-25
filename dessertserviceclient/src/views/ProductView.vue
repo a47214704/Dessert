@@ -23,13 +23,26 @@
             </td>
           </tr>
           <tr class="border-b border-gray-200 hover:bg-gray-100" v-for="(product, index) in products" :key="index">
-            <td class="py-3 px-6">{{ product.name }}</td>
+            <td class="py-3 px-6 flex justify-around items-center">
+                <img class="w-20 h-20 rounded-[50%]" v-if="product.imageUrl != ''" :src="baseUrl + product.imageUrl">
+              <label>{{ product.name }}</label>
+            </td>
             <td class="py-3 px-6 "><input class="px-2 text-right rounded-sm" v-model="product.description"></td>
             <td class="py-3 px-6"><input class="px-2 text-right rounded-sm" v-model.number="product.status"></td>
             <td class="py-3 px-6"><input class="px-2 text-right rounded-sm" v-model="product.inventory"></td>
             <td class="">
               <button class=" bg-sky-800 text-white rounded hover:bg-sky-600 py-1 px-3 text-sm my-2 mr-2" @click="doEdit(index)">Edit</button>
-              <button class=" bg-red-800 text-white rounded hover:bg-red-600 py-1 px-3 text-sm my-2" @click="doDelete(product)">Delete</button>
+              <button class=" bg-red-800 text-white rounded hover:bg-red-600 py-1 px-3 text-sm my-2 mr-2" @click="doDelete(product)">Delete</button>              
+              <label class=" bg-gray-600 text-white rounded hover:bg-gray-400 py-1 px-3 text-sm my-2">
+                <input
+                  id="upload_img"
+                  style="display: none"
+                  type="file"
+                  accept="image/*,video/*"
+                  @change="onFileChange(product.id, $event)"
+                />
+                uploadFile
+              </label>
             </td>
           </tr>
         </tbody>
@@ -39,9 +52,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, getCurrentInstance } from 'vue';
 import HeaderBar from '@/components/HeaderBar.vue';
-import { addProduct, deleteProduct, editProduct, getProductList } from '@/apis/product';
+import { addProduct, deleteProduct, editProduct, getProductList, uploadFile } from '@/apis/product';
 
 let products = ref([]);
 let newProduct = ref({
@@ -49,6 +62,8 @@ let newProduct = ref({
   description: '',
   status: 0
 });
+let currentFilePath = ref("");
+const baseUrl = getCurrentInstance().appContext.config.globalProperties.$BaseUrl;
 
 async function getProducts() {
   const res = await getProductList();
@@ -82,6 +97,33 @@ async function doAdd() {
       status: 0,
       inventory: 0
     }
+  }
+}
+
+function onFileChange(id, event) {
+  if (event.target.files && event.target.files[0]) {
+    // const fileName = event.target.files[0].name;
+    const reader = new FileReader();
+    const type = event.target.files[0].type.split("/");
+    reader.onload = () => {
+      if (reader !== null) {
+        doUpload(id, event.target.files[0], type[0], function () {
+          alert(type);
+        });
+      } else {
+        currentFilePath.value = "";
+      }
+    };
+    reader.readAsDataURL(event.target.files[0]);
+  }
+}
+
+async function doUpload(id, file, type, doCallback) {
+  var form = new FormData();
+  form.append("file", file);
+  const response = await uploadFile(id, form);
+  if (response.errorMessage == "success") {
+    doCallback();
   }
 }
 
